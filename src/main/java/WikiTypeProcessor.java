@@ -32,9 +32,12 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
     String wiki;
     Jedis jedis;
 
-    public WikiTypeProcessor(String wiki, String redis_host, String redis_dump_file) {
+    public WikiTypeProcessor(String wiki, String redis_host,
+                             String redis_dump_file) {
         this.wiki = wiki;
         this.jedis = new Jedis(redis_host);
+        String redis_dump_dir = System.getProperty("user.dir");
+        jedis.configSet("dir", redis_dump_dir);
         jedis.configSet("dbfilename", redis_dump_file);
     }
 
@@ -98,7 +101,11 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
      * Writes the results of the processing to a file.
      */
     public void writeFinalResults() {
-        jedis.save();
+        String status = jedis.save();
+        if(!status.equals("OK")) {
+            System.err.println("Problem saving redis dump; status = " + status);
+            System.exit(1);
+        }
     }
 
     private Set<String> getTypesIfAny(StatementGroup statementGroup) {
