@@ -1,5 +1,9 @@
 #! /usr/bin/env python3
 
+import gzip
+import zlib
+
+
 import thrift
 from thrift import Thrift
 from thrift.transport import TSocket
@@ -13,9 +17,21 @@ sys.path.append('/home/nick/Work/wikilinks/gen-py/edu/umass/cs/iesl/wikilink/exp
 import constants
 import ttypes
 
-with gzip.open('001.gz', 'rb') as f:
+decompressed_data = gzip.open('001.gz').read()
+transportIn = TTransport.TMemoryBuffer(decompressed_data)
+protocolIn = TBinaryProtocol.TBinaryProtocol(transportIn)
+item = WikiLinkItem()
+item.read(protocolIn)
+serialized = transportIn.getvalue()
+print(serialized)
+
+sys.exit(0)
+
+with gzip.open('001.gz') as f:
         file_content = f.read()
         transportIn = TTransport.TMemoryBuffer(file_content)
         protocolIn = TBinaryProtocol.TBinaryProtocol(transportIn)
-        msg.read(protocolIn)
+        item = WikiLinkItem()
+        item.read(protocolIn)
         serialized = transportIn.getvalue()
+        print(serialized)
