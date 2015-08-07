@@ -41,6 +41,9 @@ def get_args():
 def get_site(lang, site):
         return pywikibot.Site(lang, site)
 
+def tokenize(s):
+        return s.split()
+
 def types_from_title(site, title):
         try:
                 page = pywikibot.Page(site, title)
@@ -78,17 +81,20 @@ def read_mentions(inpath, outpath, site, lang):
                                 types = types_from_title(site, title)
                                 if types == None:
                                         continue
+                                anchor_tokens = tokenize(m.anchor_text)
+                                if len(anchor_tokens) > 9:
+                                        continue
                                 t = types[0]
-                                for token in m.context.left:
-                                        ouf.write(token + ' O')
+                                for token in tokenize(m.context.left):
+                                        ouf.write(token + ' O\n')
                                 type_str = t.title()
                                 print(m.anchor_text + '\t' + type_str)
                                 bio_type = "B-"+type_str
-                                for token in m.anchor_text.split():
-                                        ouf.write(m.anchor_text + ' ' + bio_type)
+                                for token in anchor_tokens:
+                                        ouf.write(m.anchor_text + ' ' + bio_type + '\n')
                                         bio_type = "I-"+type_str
-                                for token in m.context.right:
-                                        ouf.write(token + ' O')
+                                for token in tokenize(m.context.right):
+                                        ouf.write(token + ' O\n')
                                 ouf.write('\n')
 
 def main():
