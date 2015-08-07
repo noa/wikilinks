@@ -4,6 +4,7 @@
 #import urllib
 #from urllib.parse import urlparse
 from urlparse import urlparse
+import codecs
 import os
 import argparse
 import gzip
@@ -65,7 +66,8 @@ def types_from_title(site, title):
         return None
 
 def read_mentions(inpath, outpath, site, lang):
-        ouf = open(outpath, 'w')
+        ouf = codecs.open(outpath, 'w', 'utf-8')
+        #ouf = open(outpath, 'w')
         decompressed_data = gzip.open(inpath).read()
         transportIn = TTransport.TMemoryBuffer(decompressed_data)
         protocolIn = TBinaryProtocol.TBinaryProtocol(transportIn)
@@ -81,20 +83,29 @@ def read_mentions(inpath, outpath, site, lang):
                                 types = types_from_title(site, title)
                                 if types == None:
                                         continue
+                                #print(type(m.anchor_text))
                                 anchor_tokens = tokenize(m.anchor_text)
+                                #print(type(anchor_tokens))
                                 if len(anchor_tokens) > 9:
                                         continue
                                 t = types[0]
+                                #print(type(m.context.left))
                                 for token in tokenize(m.context.left):
-                                        ouf.write(token + ' O\n')
+                                        s = token
+                                        uni = unicode(s, 'utf-8')
+                                        ouf.write(uni + u' O\n')
                                 type_str = t.title()
-                                print(m.anchor_text + '\t' + type_str)
-                                bio_type = "B-"+type_str
+                                #print(m.anchor_text + '\t' + type_str)
+                                bio_type = u"B-"+type_str
                                 for token in anchor_tokens:
-                                        ouf.write(m.anchor_text + ' ' + bio_type + '\n')
-                                        bio_type = "I-"+type_str
+                                        s = token
+                                        uni = unicode(s, 'utf-8')
+                                        ouf.write(uni + u' ' + bio_type + u'\n')
+                                        bio_type = u"I-"+type_str
                                 for token in tokenize(m.context.right):
-                                        ouf.write(token + ' O\n')
+                                        s = token
+                                        uni = unicode(s, 'utf-8')
+                                        ouf.write(uni + u' O\n')
                                 ouf.write('\n')
 
 def main():

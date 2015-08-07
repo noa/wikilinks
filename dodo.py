@@ -1,7 +1,7 @@
 import os
 
 def task_thrift2conll():
-    for file in os.listdir("."):
+    for file in sorted(os.listdir(".")):
         if file.endswith(".gz"):
             name = os.path.basename(file)
             base_name = os.path.splitext(name)[0]
