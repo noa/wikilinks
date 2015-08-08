@@ -8,7 +8,7 @@ import operator
 import pywikibot
 import pprint
 from pywikibot.data import api
-
+import codecs
 from collections import defaultdict
 from multiprocessing import Pool
 
@@ -19,6 +19,7 @@ def get_args():
     parser.add_argument("-n", action='store', type=int)
     parser.add_argument("--lang", default='en')
     parser.add_argument("--site", default='wikipedia')
+    parser.add_argument("--output", action='store', type=str)
     return parser.parse_args()
 
 def count(path):
@@ -70,13 +71,18 @@ def main():
     sorted_s = sorted(s.items(), key=operator.itemgetter(1))
     site = get_wiki(args.lang, args.site)
     repo = site.data_repository()
+    ouf = codecs.open(args.output, 'w', 'utf-8')
     for t in sorted_s:
         l = get_type_label(repo, t[0])
         if l == None:
             l = "UNK"
         #print(t[0], l, t[1])
         #print(t[0] + " " + l + " " + str(t[1]))
-        print("%10s %50s %10u" % (t[0],l,t[1]))
+        ol = "%10s %50s %10u" % (t[0],l,t[1])
+        if args.output:
+            ouf.write(ol+"\n")
+        else:
+            print(ol)
 
     return 0
 
