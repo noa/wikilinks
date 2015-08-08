@@ -45,4 +45,9 @@ doit
 ```
 at the command line to (1) fetch Wikipedia types and store them in redis (2) process the compressed Thrift files into CoNLL format.
 
-If not, see dodo.py for details on how to run each command.  
+If not, see dodo.py for details on how to run each command.
+
+## Generating statistics ##
+```
+./conll_stats.py --glob "*.conll" --output stats.txt
+```
