@@ -4,8 +4,8 @@ WIKI_TYPES='wiki_types.rdb'
 
 def task_wiki_types():
     return {
-        'name': "wiki2redis",
-        'actions': 'mvn exec:java',
+#        'name': "wiki2redis",
+        'actions': ['mvn exec:java'],
         'targets': [WIKI_TYPES]
     }
 
@@ -18,7 +18,8 @@ def task_thrift2conll():
             yield {
                 'basename': 'thrift2conll',
                 'name': base_name,
-                'actions': ['python read.py --input %s --output %s --types %s'
-                            % (file, out_file, WIKI_TYPES)],
+                'file_dep': [WIKI_TYPES],
+                'actions': ['python thrift2conll.py --redis --input %s --output %s'
+                            % (file, out_file)],
                 'targets': [out_file]
             }

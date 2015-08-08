@@ -10,6 +10,7 @@ import zlib
 import pywikibot
 import pprint
 from pywikibot.data import api
+from timeit import default_timer as timer
 
 try:
         from StringIO import StringIO
@@ -42,10 +43,7 @@ def get_args():
         return parser.parse_args()
 
 def get_redis(host, port, dump_file):
-        r = redis.StrictRedis(host=host, port=port, db=0)
-        #dump_dir = os.getcwd()
-        #r.config_set('dir', dump_dir)
-        #r.config_set('dbfilename', dump_file)
+        return redis.StrictRedis(host=host, port=port, db=0)
 
 def get_site(lang, site):
         return pywikibot.Site(lang, site)
@@ -54,7 +52,9 @@ def tokenize(s):
         return s.split()
 
 def types_from_title_with_redis(r, title):
-        print('fetching types for: ' + title)
+        #print('fetching types for: ' + title)
+        key = title.replace("_", " ")
+        return r.smembers(key)
 
 def types_from_title_with_pywikibot(site, title):
         try:
@@ -77,8 +77,10 @@ def types_from_title_with_pywikibot(site, title):
         return None
 
 def types_from_title(wiki, title):
-        print(type(wiki))
-        sys.exit(1)
+        if type(wiki) == pywikibot.site.APISite:
+                return types_from_title_with_pywikibot(wiki, title)
+        if type(wiki) == redis.client.StrictRedis:
+                return types_from_title_with_redis(wiki, title)
 
 def read_mentions(inpath, outpath, wiki, lang):
         ouf = codecs.open(outpath, 'w', 'utf-8')
@@ -87,23 +89,39 @@ def read_mentions(inpath, outpath, wiki, lang):
         transportIn = TTransport.TMemoryBuffer(decompressed_data)
         protocolIn = TBinaryProtocol.TBinaryProtocol(transportIn)
         item = WikiLinkItem()
+        nitems = 0
+        nitems_with_context = 0
+        nitems_with_type = 0
+        start = timer()
         while not item == None:
+
+                curr = timer()
+                if curr - start > 5:
+                        print(str(nitems)+' mentions ('+str(nitems_with_context)
+                              +' w context, '+str(nitems_with_type)+' w type)')
+                        start = timer()
+
+
                 item.read(protocolIn)
                 for m in item.mentions:
+                        nitems += 1
                         if m.context == None:
                                 continue
+                        nitems_with_context += 1
                         types = None
                         if not m.wiki_url == None:
                                 title = os.path.split(urlparse(m.wiki_url).path)[-1]
                                 types = types_from_title(wiki, title)
-                                if types == None:
+                                if types == None or len(types) < 1:
                                         continue
+                                nitems_with_type += 1
                                 #print(type(m.anchor_text))
                                 anchor_tokens = tokenize(m.anchor_text)
                                 #print(type(anchor_tokens))
                                 if len(anchor_tokens) > 9:
                                         continue
-                                t = types[0]
+                                #t = types[0]
+                                t = types.pop()
                                 #print(type(m.context.left))
                                 for token in tokenize(m.context.left):
                                         s = token
@@ -126,7 +144,7 @@ def read_mentions(inpath, outpath, wiki, lang):
 def main():
         args = get_args()
         if args.redis:
-                r = get_redit(args.redis_host, args.redis_port)
+                r = get_redis(args.redis_host, args.redis_port, args.redis_dump_file)
                 read_mentions(args.input, args.output, r, args.lang)
         else:
                 site = get_site(args.lang, args.site)
