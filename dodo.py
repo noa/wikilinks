@@ -4,7 +4,9 @@ WIKI_TYPES='wiki_types'
 
 def task_wiki_types():
     return {
-        'actions': ''
+        'name': "wiki_types",
+        'actions': 'mvn exec:java',
+        'targets': ['titles.rdb']
     }
 
 def task_thrift2conll():

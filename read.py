@@ -35,6 +35,7 @@ def get_args():
         parser = argparse.ArgumentParser()
         parser.add_argument('--input', help='compressed input', required=True)
         parser.add_argument('--output', help='output path', required=True)
+        parser.add_argument('--redis', action='store_true')
         parser.add_argument('--lang', default='en')
         parser.add_argument('--site', default='wikipedia')
         return parser.parse_args()

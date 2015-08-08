@@ -108,10 +108,11 @@
               </executions>
               <configuration>
                   <mainClass>jhu.wikilinks.WikiTypeProcessor</mainClass>
-                  <!-- <arguments> -->
-                  <!--     <argument>foo</argument> -->
-                  <!--     <argument>bar</argument> -->
-                  <!-- </arguments> -->
+                  <arguments>
+                      <argument>enwiki</argument>
+                      <argument>localhost</argument>
+                      <argument>titles.rdb</argument>
+                  </arguments>
               </configuration>
           </plugin>
       </plugins>

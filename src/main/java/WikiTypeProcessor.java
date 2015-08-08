@@ -2,6 +2,11 @@ package jhu.wikilinks;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Set;
+import java.util.Map;
+
+import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
@@ -11,6 +16,11 @@ import org.wikidata.wdtk.datamodel.interfaces.StatementGroup;
 import org.wikidata.wdtk.datamodel.interfaces.TimeValue;
 import org.wikidata.wdtk.datamodel.interfaces.Value;
 import org.wikidata.wdtk.datamodel.interfaces.ValueSnak;
+import org.wikidata.wdtk.datamodel.interfaces.SiteLink;
+import org.wikidata.wdtk.datamodel.interfaces.EntityIdValue;
+import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
+
+import redis.clients.jedis.Jedis;
 
 // import org.wikidata.wdtk.examples.ExampleHelpers;
 
@@ -19,13 +29,14 @@ import org.wikidata.wdtk.datamodel.interfaces.ValueSnak;
  * simply displays "Hello World!" to the standard output.
  */
 class WikiTypeProcessor implements EntityDocumentProcessor {
-    long totalPeopleCount = 0;
-    long totalLifeSpan = 0;
-    boolean printedStatus = true;
+    String wiki;
+    Jedis jedis;
 
-    // Simply store data indexed by year of birth, in a range from 0 to 2100:
-    final long[] lifeSpans = new long[2100];
-    final long[] peopleCount = new long[2100];
+    public WikiTypeProcessor(String wiki, String redis_host, String redis_dump_file) {
+        this.wiki = wiki;
+        this.jedis = new Jedis(redis_host);
+        jedis.configSet("dbfilename", redis_dump_file);
+    }
 
     /**
      * Main method. Processes the whole dump using this processor and writes the
@@ -36,46 +47,45 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
      * @throws IOException
      */
     public static void main(String[] args) {
-        System.out.println("Hello World!"); // Display the string.
+        String wiki = args[0];
+        String redis_host = args[1];
+        String redis_dump_file = args[2];
+        System.out.println("REDIS HOST " + redis_host + " DUMP " + redis_dump_file);
         ExampleHelpers.configureLogging();
-        WikiTypeProcessor.printDocumentation();
-        WikiTypeProcessor processor = new WikiTypeProcessor();
+        WikiTypeProcessor processor = new WikiTypeProcessor(wiki, redis_host, redis_dump_file);
         ExampleHelpers.processEntitiesFromWikidataDump(processor);
         processor.writeFinalResults();
     }
 
     @Override
     public void processItemDocument(ItemDocument itemDocument) {
-        int birthYear = Integer.MIN_VALUE;
-        int deathYear = Integer.MIN_VALUE;
+        //String title = itemDocument.getItemId().getId();
+        //System.out.println("title = " + title);
+        //System.out.println("site = " + itemDocument.getSiteLinks().get(wiki).getPageTitle());
+        SiteLink site = itemDocument.getSiteLinks().get(wiki);
 
+        if (site == null) {
+            return;
+        }
+        String title = site.getPageTitle();
+        //System.out.println("title = " + title);
+
+        //Map<String, SiteLink> links = itemDocument.getSiteLinks();
+        //for(String key : links.keySet()) {
+        //    System.out.println("key = " + key);
+        //}
+
+        Set<String> types;
         for (StatementGroup statementGroup : itemDocument.getStatementGroups()) {
             switch (statementGroup.getProperty().getId()) {
-            case "P569": // P569 is "birth date"
-                birthYear = getYearValueIfAny(statementGroup);
-                break;
-            case "P570": // P570 is "death date"
-                deathYear = getYearValueIfAny(statementGroup);
+            case "P31": // instance of
+                types = getTypesIfAny(statementGroup);
+                for(String t : types) {
+                    //System.out.println("\ttype = " + t);
+                    jedis.sadd(title, t);
+                }
                 break;
             }
-        }
-
-        if (birthYear != Integer.MIN_VALUE && deathYear != Integer.MIN_VALUE
-            && birthYear >= 1200) {
-            // Do some more sanity checks to filter strange values:
-            if (deathYear > birthYear && deathYear - birthYear < 130) {
-                lifeSpans[birthYear] += (deathYear - birthYear);
-                peopleCount[birthYear]++;
-                totalLifeSpan += (deathYear - birthYear);
-                totalPeopleCount++;
-                printedStatus = false;
-            }
-        }
-
-        // Print the status once in a while:
-        if (!printedStatus && totalPeopleCount % 10000 == 0) {
-            printStatus();
-            printedStatus = true;
         }
     }
 
@@ -88,76 +98,22 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
      * Writes the results of the processing to a file.
      */
     public void writeFinalResults() {
-        printStatus();
-        try (PrintStream out = new PrintStream(
-                 ExampleHelpers.openExampleFileOuputStream("life-expectancies.csv"))) {
-            for (int i = 0; i < lifeSpans.length; i++) {
-                if (peopleCount[i] != 0) {
-                    out.println(i + "," + (double) lifeSpans[i]
-                                / peopleCount[i] + "," + peopleCount[i]);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        jedis.save();
     }
 
-    /**
-     * Prints some basic documentation about this program.
-     */
-    public static void printDocumentation() {
-        System.out
-            .println("********************************************************************");
-        System.out.println("*** Wikidata Toolkit: LifeExpectancyProcessor");
-        System.out.println("*** ");
-        System.out
-            .println("*** This program will download and process dumps from Wikidata.");
-        System.out
-            .println("*** It will compute the average life expectancy of persons found");
-        System.out
-            .println("*** In the data. Results will be stored in a CSV file.");
-        System.out.println("*** See source code for further details.");
-        System.out
-            .println("********************************************************************");
-
-    }
-
-    /**
-     * Prints the current status to the system output.
-     */
-    private void printStatus() {
-        if (this.totalPeopleCount != 0) {
-            System.out.println("Found " + totalPeopleCount
-                + " people with an average life span of "
-                               + (float) totalLifeSpan / totalPeopleCount + " years.");
-        } else {
-            System.out.println("Found no people yet.");
-        }
-    }
-
-    /**
-     * Helper method that extracts an integer year from the first time value
-     * found in a statement of the given statement group. It checks if the
-     * statement has a {@link TimeValue} but also if this value has sufficient
-     * precision to extract an exact year.
-     *
-     * @param statementGroup
-     *            the {@link StatementGroup} to extract the year from
-     * @return the year, or Interger.MIN_VALUE if none was found
-     */
-    private int getYearValueIfAny(StatementGroup statementGroup) {
+    private Set<String> getTypesIfAny(StatementGroup statementGroup) {
+        Set<String> ret = Sets.newHashSet();
         // Iterate over all statements
         for (Statement s : statementGroup.getStatements()) {
             // Find the main claim and check if it has a value
             if (s.getClaim().getMainSnak() instanceof ValueSnak) {
                 Value v = ((ValueSnak) s.getClaim().getMainSnak()).getValue();
-                // Check if the value is a TimeValue of sufficient precision
-                if (v instanceof TimeValue
-                    && ((TimeValue) v).getPrecision() >= TimeValue.PREC_YEAR) {
-                    return (int) ((TimeValue) v).getYear();
-                }
+                //ret.add(v.toString());
+                assert( v instanceof EntityIdValue );
+                EntityIdValue ev = (EntityIdValue)v;
+                ret.add(ev.getId());
             }
         }
-        return Integer.MIN_VALUE;
+        return ret;
     }
 }
