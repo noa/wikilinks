@@ -2,6 +2,9 @@ import os
 
 WIKI_TYPES='wiki_types.rdb'
 
+def show_cmd(task):
+    return "executing... %s" % task.name
+
 def task_wiki_types():
     return {
 #        'name': "wiki2redis",
@@ -22,5 +25,6 @@ def task_thrift2conll():
                 'file_dep': [WIKI_TYPES],
                 'actions': ['python thrift2conll.py --redis --input %s --output %s'
                             % (f, out_file)],
-                'targets': [out_file]
+                'targets': [out_file],
+                'title': show_cmd
             }
