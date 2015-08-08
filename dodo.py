@@ -1,12 +1,12 @@
 import os
 
-WIKI_TYPES='wiki_types'
+WIKI_TYPES='wiki_types.rdb'
 
 def task_wiki_types():
     return {
-        'name': "wiki_types",
+        'name': "wiki2redis",
         'actions': 'mvn exec:java',
-        'targets': ['titles.rdb']
+        'targets': [WIKI_TYPES]
     }
 
 def task_thrift2conll():
@@ -19,6 +19,6 @@ def task_thrift2conll():
                 'basename': 'thrift2conll',
                 'name': base_name,
                 'actions': ['python read.py --input %s --output %s --types %s'
-                            % (file, out_file, wiki_types)],
+                            % (file, out_file, WIKI_TYPES)],
                 'targets': [out_file]
             }

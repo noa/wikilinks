@@ -1,8 +1,6 @@
 #! /usr/bin/env python
 
-#from urllib.parse import urlparse
-#import urllib
-#from urllib.parse import urlparse
+import redis
 from urlparse import urlparse
 import codecs
 import os
@@ -36,9 +34,18 @@ def get_args():
         parser.add_argument('--input', help='compressed input', required=True)
         parser.add_argument('--output', help='output path', required=True)
         parser.add_argument('--redis', action='store_true')
+        parser.add_argument('--redis-port', type=int, default=6379)
+        parser.add_argument('--redis-host', default="localhost")
+        parser.add_argument('--redis-dump-file', default="wiki_types.rdb")
         parser.add_argument('--lang', default='en')
         parser.add_argument('--site', default='wikipedia')
         return parser.parse_args()
+
+def get_redis(host, port, dump_file):
+        r = redis.StrictRedis(host=host, port=port, db=0)
+        #dump_dir = os.getcwd()
+        #r.config_set('dir', dump_dir)
+        #r.config_set('dbfilename', dump_file)
 
 def get_site(lang, site):
         return pywikibot.Site(lang, site)
@@ -46,7 +53,10 @@ def get_site(lang, site):
 def tokenize(s):
         return s.split()
 
-def types_from_title(site, title):
+def types_from_title_with_redis(r, title):
+        print('fetching types for: ' + title)
+
+def types_from_title_with_pywikibot(site, title):
         try:
                 page = pywikibot.Page(site, title)
                 item = pywikibot.ItemPage.fromPage(page)
@@ -66,7 +76,11 @@ def types_from_title(site, title):
                 return None
         return None
 
-def read_mentions(inpath, outpath, site, lang):
+def types_from_title(wiki, title):
+        print(type(wiki))
+        sys.exit(1)
+
+def read_mentions(inpath, outpath, wiki, lang):
         ouf = codecs.open(outpath, 'w', 'utf-8')
         #ouf = open(outpath, 'w')
         decompressed_data = gzip.open(inpath).read()
@@ -81,7 +95,7 @@ def read_mentions(inpath, outpath, site, lang):
                         types = None
                         if not m.wiki_url == None:
                                 title = os.path.split(urlparse(m.wiki_url).path)[-1]
-                                types = types_from_title(site, title)
+                                types = types_from_title(wiki, title)
                                 if types == None:
                                         continue
                                 #print(type(m.anchor_text))
@@ -111,8 +125,12 @@ def read_mentions(inpath, outpath, site, lang):
 
 def main():
         args = get_args()
-        site = get_site(args.lang, args.site)
-        read_mentions(args.input, args.output, site, args.lang)
+        if args.redis:
+                r = get_redit(args.redis_host, args.redis_port)
+                read_mentions(args.input, args.output, r, args.lang)
+        else:
+                site = get_site(args.lang, args.site)
+                read_mentions(args.input, args.output, site, args.lang)
 
 if __name__ == "__main__":
         main()

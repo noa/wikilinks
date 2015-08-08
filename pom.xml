@@ -111,7 +111,9 @@
                   <arguments>
                       <argument>enwiki</argument>
                       <argument>localhost</argument>
-                      <argument>titles.rdb</argument>
+                      <argument>6379</argument>
+                      <argument>20000</argument>
+                      <argument>wiki_types.rdb</argument>
                   </arguments>
               </configuration>
           </plugin>

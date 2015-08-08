@@ -21,6 +21,8 @@ import org.wikidata.wdtk.datamodel.interfaces.EntityIdValue;
 import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 // import org.wikidata.wdtk.examples.ExampleHelpers;
 
@@ -30,15 +32,25 @@ import redis.clients.jedis.Jedis;
  */
 class WikiTypeProcessor implements EntityDocumentProcessor {
     String wiki;
-    Jedis jedis;
+    //Jedis jedis;
+    JedisPool pool;
 
-    public WikiTypeProcessor(String wiki, String redis_host,
+    public WikiTypeProcessor(String wiki,
+                             String redis_host,
+                             int redis_port,
+                             int redis_timeout,
                              String redis_dump_file) {
         this.wiki = wiki;
-        this.jedis = new Jedis(redis_host);
+        this.pool = new JedisPool(new JedisPoolConfig(),
+                                        redis_host,
+                                        redis_port,
+                                        redis_timeout);
         String redis_dump_dir = System.getProperty("user.dir");
-        jedis.configSet("dir", redis_dump_dir);
-        jedis.configSet("dbfilename", redis_dump_file);
+        try (Jedis jedis = pool.getResource()) {
+            jedis.configSet("dir", redis_dump_dir);
+            jedis.configSet("dbfilename", redis_dump_file);
+            jedis.flushAll(); // flush previous redis contents
+        }
     }
 
     /**
@@ -52,10 +64,16 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
     public static void main(String[] args) {
         String wiki = args[0];
         String redis_host = args[1];
-        String redis_dump_file = args[2];
+        int redis_port = Integer.parseInt(args[2]);
+        int redis_timeout = Integer.parseInt(args[3]);
+        String redis_dump_file = args[4];
         System.out.println("REDIS HOST " + redis_host + " DUMP " + redis_dump_file);
         ExampleHelpers.configureLogging();
-        WikiTypeProcessor processor = new WikiTypeProcessor(wiki, redis_host, redis_dump_file);
+        WikiTypeProcessor processor = new WikiTypeProcessor(wiki,
+                                                            redis_host,
+                                                            redis_port,
+                                                            redis_timeout,
+                                                            redis_dump_file);
         ExampleHelpers.processEntitiesFromWikidataDump(processor);
         processor.writeFinalResults();
     }
@@ -83,9 +101,11 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
             switch (statementGroup.getProperty().getId()) {
             case "P31": // instance of
                 types = getTypesIfAny(statementGroup);
-                for(String t : types) {
-                    //System.out.println("\ttype = " + t);
-                    jedis.sadd(title, t);
+                try (Jedis jedis = pool.getResource()) {
+                    for(String t : types) {
+                        //System.out.println("\ttype = " + t);
+                        jedis.sadd(title, t);
+                    }
                 }
                 break;
             }
@@ -101,11 +121,24 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
      * Writes the results of the processing to a file.
      */
     public void writeFinalResults() {
-        String status = jedis.save();
-        if(!status.equals("OK")) {
-            System.err.println("Problem saving redis dump; status = " + status);
-            System.exit(1);
+        System.out.println("Saving redis state...");
+        try (Jedis jedis = pool.getResource()) {
+            long now = System.currentTimeMillis() / 1000L;
+            System.out.println("now = " + now);
+            String status = jedis.bgsave(); // start a background save
+            long lastsave = jedis.lastsave();
+            while(lastsave < now) {
+                System.out.print("last save: " + lastsave);
+                System.out.println(" ; waiting for bgsave to complete...");
+                try {
+                    Thread.sleep(5000); // 5s
+                } catch(InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+                lastsave = jedis.lastsave();
+            }
         }
+        pool.destroy();
     }
 
     private Set<String> getTypesIfAny(StatementGroup statementGroup) {
