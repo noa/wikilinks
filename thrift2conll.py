@@ -101,8 +101,12 @@ def read_mentions(inpath, outpath, wiki, lang):
                               +' w context, '+str(nitems_with_type)+' w type)')
                         start = timer()
 
+                try:
+                        item.read(protocolIn)
+                except EOFError:
+                        item = None
+                        break
 
-                item.read(protocolIn)
                 for m in item.mentions:
                         nitems += 1
                         if m.context == None:
