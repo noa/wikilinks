@@ -43,14 +43,17 @@ def get_wiki(lang, site):
     return pywikibot.Site(lang, site)
 
 def get_type_label(wiki, t):
-    item = pywikibot.ItemPage(wiki, t)
-    item.get()
-    #sitelinks = item.sitelinks
-    #aliases = item.aliases
-    if 'en' in item.labels:
-        #print('The label in English is: ' + item.labels['en'])
-        return item.labels['en']
-    else:
+    try:
+        item = pywikibot.ItemPage(wiki, t)
+        item.get()
+        #sitelinks = item.sitelinks
+        #aliases = item.aliases
+        if 'en' in item.labels:
+            #print('The label in English is: ' + item.labels['en'])
+            return item.labels['en']
+        else:
+            return None
+    except:
         return None
 
 def main():
