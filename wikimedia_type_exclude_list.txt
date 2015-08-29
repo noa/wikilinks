@@ -1,0 +1,6 @@
+Q4167410                Wikimedia disambiguation page
+Q13406463                 Wikimedia list article
+Q4167836                                 Wikimedia category      32787
+Q14204246                             Wikimedia project page      32823
+Q4663903                                   Wikimedia portal      13143
+Q18340514                                  article about events in a specific year or time period      10120

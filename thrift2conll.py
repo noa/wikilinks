@@ -35,11 +35,13 @@ def get_args():
         parser.add_argument('--input', help='compressed input', required=True)
         parser.add_argument('--output', help='output path', required=True)
         parser.add_argument('--redis', action='store_true')
+        parser.add_argument('--verbose', action='store_true', default=False)
         parser.add_argument('--redis-port', type=int, default=6379)
         parser.add_argument('--redis-host', default="localhost")
         parser.add_argument('--redis-dump-file', default="wiki_types.rdb")
         parser.add_argument('--lang', default='en')
         parser.add_argument('--site', default='wikipedia')
+        parser.add_argument('--exclude')
         return parser.parse_args()
 
 def get_redis(host, port, dump_file):
@@ -82,7 +84,7 @@ def types_from_title(wiki, title):
         if type(wiki) == redis.client.StrictRedis:
                 return types_from_title_with_redis(wiki, title)
 
-def read_mentions(inpath, outpath, wiki, lang):
+def read_mentions(inpath, outpath, wiki, lang, verbose, exclude_set):
         ouf = codecs.open(outpath, 'w', 'utf-8')
         #ouf = open(outpath, 'w')
         decompressed_data = gzip.open(inpath).read()
@@ -116,8 +118,19 @@ def read_mentions(inpath, outpath, wiki, lang):
                         if not m.wiki_url == None:
                                 title = os.path.split(urlparse(m.wiki_url).path)[-1]
                                 types = types_from_title(wiki, title)
+
+                                if verbose:
+                                        print('anchor: ' + m.anchor_text)
+                                        print('left: ' + m.context.left)
+                                        print('middle: ' + m.context.middle)
+                                        print('right: ' + m.context.right)
+                                        # if m.content:
+                                        #         print('content: ' + m.content.raw)
+                                        print('')
+
                                 if types == None or len(types) < 1:
                                         continue
+
                                 nitems_with_type += 1
                                 #print(type(m.anchor_text))
                                 anchor_tokens = tokenize(m.anchor_text)
@@ -126,6 +139,11 @@ def read_mentions(inpath, outpath, wiki, lang):
                                         continue
                                 #t = types[0]
                                 t = types.pop()
+
+                                # Check if type in exclude set
+                                if t in exclude_set:
+                                        continue
+
                                 #print(type(m.context.left))
                                 for token in tokenize(m.context.left):
                                         s = token
@@ -147,12 +165,21 @@ def read_mentions(inpath, outpath, wiki, lang):
 
 def main():
         args = get_args()
+
+        exclude_set = set()
+        if args.exclude:
+                for line in open(args.exclude):
+                        tokens = line.rstrip().split()
+                        exclude_set.add(tokens[0])
+
         if args.redis:
                 r = get_redis(args.redis_host, args.redis_port, args.redis_dump_file)
-                read_mentions(args.input, args.output, r, args.lang)
+                read_mentions(args.input, args.output, r, args.lang, args.verbose, exclude_set)
         else:
+                print('unsupported!')
+                sys.exit(1)
                 site = get_site(args.lang, args.site)
-                read_mentions(args.input, args.output, site, args.lang)
+                read_mentions(args.input, args.output, site, args.lang, args.verbose, exclude_set)
 
 if __name__ == "__main__":
         main()

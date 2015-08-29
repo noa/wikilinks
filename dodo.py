@@ -1,10 +1,14 @@
 import os
 
 WIKI_TYPES='wiki_types.rdb'
+#TYPE_EXCLUDE='exclude_list.txt'
+TYPE_EXCLUDE='exclude_less_than_10000.txt'
 
 def show_cmd(task):
     return "executing... %s" % task.name
 
+# this task retrieves a bunch of wikipedia entity types
+# from a wikidata dump and stores them in redis
 def task_wiki_types():
     return {
 #        'name': "wiki2redis",
@@ -23,8 +27,15 @@ def task_thrift2conll():
                 'basename': 'thrift2conll',
                 'name': base_name,
                 'file_dep': [WIKI_TYPES],
-                'actions': ['python thrift2conll.py --redis --input %s --output %s'
-                            % (f, out_file)],
+                'actions': ['python thrift2conll.py --redis --input %s --output %s --exclude %s'
+                            % (f, out_file, TYPE_EXCLUDE)],
                 'targets': [out_file],
                 'title': show_cmd
             }
+
+def task_conll_stats():
+    STATS_OUT="statistics.txt"
+    return {
+        'actions': ['./conll_stats.py --glob "*.conll" --output %s' % (STATS_OUT)],
+        'targets': [STATS_OUT]
+    }

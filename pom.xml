@@ -14,7 +14,25 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <repositories>
+      <repository>
+          <id>iesl.cs.umass.edu</id>
+          <name>IESL release repository</name>
+          <url>https://dev-iesl.cs.umass.edu/nexus/content/repositories/releases/</url>
+      </repository>
+      <repository>
+          <id>snapshot.iesl.cs.umass.edu</id>
+          <name>IESL snapshot repository</name>
+          <url>https://dev-iesl.cs.umass.edu/nexus/content/repositories/snapshots/</url>
+      </repository>
+  </repositories>
+
   <dependencies>
+      <dependency>
+          <groupId>edu.umass.cs.iesl.wikilink</groupId>
+          <artifactId>wikilink</artifactId>
+          <version>0.1-SNAPSHOT</version>
+      </dependency>
       <dependency>
           <groupId>junit</groupId>
           <artifactId>junit</artifactId>
