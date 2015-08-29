@@ -3,11 +3,12 @@
 import os
 import sys
 import glob
+import argparse
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", required=True)
-    parser.add_argument("--output", required=True)
+    parser.add_argument("--output")
 
     # conditions
     parser.add_argument("--gt", type=int)
@@ -16,7 +17,9 @@ def get_args():
 
 def run(args):
     nleftover = 0
-    out = open(args.output, 'w')
+    out = None
+    if args.output:
+        out = open(args.output, 'w')
     for line in open(args.input):
         tokens = line.rstrip().split()
         t = tokens[0]
@@ -26,7 +29,11 @@ def run(args):
         if args.gt and f < args.gt:
             continue
 
-        out.write(line)
+        nleftover += 1
+
+        if out:
+            out.write(line)
+    print(str(nleftover) + " left over")
 
 if __name__ == "__main__":
     args = get_args()

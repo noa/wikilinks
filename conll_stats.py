@@ -29,7 +29,8 @@ def get_args():
 def count(args, path):
     print('counting: %s' % (path))
     stats = defaultdict(int)
-    for line in open(path):
+    #for line in open(path):
+    for line in codecs.open(path, 'r', 'utf-8'):
         tokens = line.rstrip().split()
         if len(tokens) == 2:
             bio_tag = tokens[1]
@@ -114,9 +115,9 @@ def main():
         #print(t[0], l, t[1])
         #print(t[0] + " " + l + " " + str(t[1]))
         #ol = "%10s %50s %10u" % (t[0],l,t[1])
-        ol = t[0] + " " + str(t[1])
+        ol = t[0] + u" " + str(t[1])
         if args.output:
-            ouf.write(ol+"\n")
+            ouf.write(ol + u"\n")
         else:
             print(ol)
 
