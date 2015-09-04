@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import redis
 from urlparse import urlparse
@@ -50,8 +51,77 @@ def get_redis(host, port, dump_file):
 def get_site(lang, site):
         return pywikibot.Site(lang, site)
 
-def tokenize(s):
-        return s.split()
+def get_lemma(token):
+
+        if token.find('http') >= 0:
+                return 'URL'
+
+        if token.isdigit() or any(char.isdigit() for char in token):
+                return 'NUMBER'
+
+        ret = token.upper()
+        return ret
+
+def tokenize(s, ne):
+        ret = []
+        for token in s.split():
+                l = len(token)
+                if not ne: # not a named-entity
+                        if token.find('.') >= 0:
+                                ret.append(token.split('.')[0])
+                                ret.append('.')
+                        elif token.find('-') >= 0:
+                                subtoks = token.split('-')
+                                if len(subtoks) == 2:
+                                        ret.append(subtoks[0])
+                                        ret.append('-')
+                                        ret.append(subtoks[1])
+                                else:
+                                        ret.append(subtoks[0])
+                                        ret.append('-')
+                        elif l > 1 and token.find(' ') >= 0:
+                                subtoks = token.split(' ')
+                                ret.append(subtoks[0])
+                                ret.append(' ')
+                                ret.append(subtoks[1])
+                        elif l > 1 and token[0] == '(':
+                                ret.append('(')
+                                ret.append(token[1:])
+                        elif l > 1 and token[-1] == ')':
+                                ret.append(token[0:-1])
+                                ret.append(')')
+                        elif l > 1 and token[0] == '"':
+                                ret.append('"')
+                                ret.append(token[1:])
+                        elif l > 1 and token[-1] == '"':
+                                ret.append(token[0:-1])
+                                ret.append('"')
+                        elif l > 1 and token[0] == ',':
+                                ret.append(',')
+                                ret.append(token[1:])
+                        elif l > 1 and token[-1] == ',':
+                                ret.append(token[0:-1])
+                                ret.append(',')
+                        elif l > 1 and token[0] == " ":
+                                ret.append(" ")
+                                ret.append(token[1:])
+                        elif l > 1 and token[-1] == " ":
+                                ret.append(token[0:-1])
+                                ret.append(" ")
+                        elif token[-2:] == "'s":
+                                ret.append(token[0:-2])
+                                ret.append("'s")
+                        elif token[-2:] == "’s":
+                                ret.append(token[0:-2])
+                                ret.append("’s")
+                        else:
+                                ret.append(token)
+                else: # is a named-entity, gotta be careful about e.g. U.S.
+                        ret.append(token)
+        if ne:
+                return ret
+        else:
+                return [ (x, get_lemma(x)) for x in ret ]
 
 def types_from_title_with_redis(r, title):
         #print('fetching types for: ' + title)
@@ -83,6 +153,12 @@ def types_from_title(wiki, title):
                 return types_from_title_with_pywikibot(wiki, title)
         if type(wiki) == redis.client.StrictRedis:
                 return types_from_title_with_redis(wiki, title)
+
+def write_context(f, context):
+        for tup in tokenize(context, False):
+                s = unicode(tup[0], 'utf-8')
+                lem = unicode(tup[1], 'utf-8')
+                f.write(s + u' ' + lem + u'\n')
 
 def read_mentions(inpath, outpath, wiki, lang, verbose, exclude_set):
         ouf = codecs.open(outpath, 'w', 'utf-8')
@@ -132,35 +208,32 @@ def read_mentions(inpath, outpath, wiki, lang, verbose, exclude_set):
                                         continue
 
                                 nitems_with_type += 1
-                                #print(type(m.anchor_text))
-                                anchor_tokens = tokenize(m.anchor_text)
-                                #print(type(anchor_tokens))
+                                anchor_tokens = tokenize(m.anchor_text, True)
+
                                 if len(anchor_tokens) > 9:
                                         continue
-                                #t = types[0]
+
                                 t = types.pop()
 
                                 # Check if type in exclude set
                                 if t in exclude_set:
                                         continue
 
-                                #print(type(m.context.left))
-                                for token in tokenize(m.context.left):
-                                        s = token
-                                        uni = unicode(s, 'utf-8')
-                                        ouf.write(uni + u' O\n')
+                                # Write left context
+                                write_context(ouf, m.context.left)
+
                                 type_str = t.title()
-                                #print(m.anchor_text + '\t' + type_str)
                                 bio_type = u"B-"+type_str
                                 for token in anchor_tokens:
                                         s = token
                                         uni = unicode(s, 'utf-8')
                                         ouf.write(uni + u' ' + bio_type + u'\n')
                                         bio_type = u"I-"+type_str
-                                for token in tokenize(m.context.right):
-                                        s = token
-                                        uni = unicode(s, 'utf-8')
-                                        ouf.write(uni + u' O\n')
+
+                                # Write right context
+                                write_context(ouf, m.context.right)
+
+                                # End this utterance
                                 ouf.write('\n')
 
 def main():
