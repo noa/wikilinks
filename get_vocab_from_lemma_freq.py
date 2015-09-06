@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument('--glob')
     parser.add_argument('--path')
     parser.add_argument('--output', default="lemma_token_freq.txt")
-    parser.add_argument('--max', default=1000)
+    parser.add_argument('--max', type=int, default=1000)
     parser.add_argument('--n', default=12)
     return parser.parse_args()
 
@@ -70,13 +70,17 @@ def main():
 
     print('reducing stats...')
     s = merge_counts(stats)
-    sorted_s = sorted(s.items(), key=operator.itemgetter(1))
+    sorted_s = sorted(s.items(), key=operator.itemgetter(1), reverse=True)
     print('stats size: ' + str(len(s)))
     print('stats size: ' + str(len(sorted_s)))
 
     print('writing results...')
     ouf = codecs.open(args.output, 'w', 'utf-8')
+    n = 0
     for t in sorted_s:
+        n += 1
+        if n > args.max:
+            break
         ol = t[0] + u" " + str(t[1])
         if args.output:
             ouf.write(ol + u"\n")
