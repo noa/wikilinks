@@ -18,13 +18,14 @@ def get_args():
     parser.add_argument('--output', default="lemma_token_freq.txt")
     parser.add_argument('--max', type=int, default=1000)
     parser.add_argument('--n', default=12)
+    parser.add_argument('--oov')
     return parser.parse_args()
 
 def read_lemmas(path):
     ret = set()
     for line in open(path):
         tokens = line.rstrip().split('\t')
-        ret.add(tokens[0].upper())
+        ret.add(tokens[0])
     return ret
 
 def is_named_entity(tag):
@@ -40,7 +41,7 @@ def count(args, lemmas, path):
         if len(tokens) == 2:
             tag = tokens[1]
             if not is_named_entity(tag):
-                word = tokens[0].upper()
+                word = tokens[0]
                 if word in lemmas:
                     stats[word] += 1
     return stats
@@ -74,19 +75,26 @@ def main():
     print('stats size: ' + str(len(s)))
     print('stats size: ' + str(len(sorted_s)))
 
-    print('writing results...')
+    print('writing results to: ' + args.output)
     ouf = codecs.open(args.output, 'w', 'utf-8')
     n = 0
+    oov_mode = False
     for t in sorted_s:
         n += 1
         if n > args.max:
-            break
-        ol = t[0] + u" " + str(t[1])
+            if args.oov:
+                oov_mode = True
+            else:
+                break
+        ol = None
+        if not oov_mode:
+            ol = t[0] + u" " + str(t[1])
+        else:
+            ol = t[0] + u" " + args.oov
         if args.output:
             ouf.write(ol + u"\n")
         else:
             print(ol)
-
 
 if __name__ == "__main__":
     main()

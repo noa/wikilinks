@@ -2,7 +2,7 @@ import os
 
 WIKI_TYPES='wiki_types.rdb'
 #TYPE_EXCLUDE='exclude_list.txt'
-TYPE_EXCLUDE='exclude_less_than_10000.txt'
+#TYPE_EXCLUDE='exclude_less_than_10000.txt'
 
 def show_cmd(task):
     return "executing... %s" % task.name
@@ -27,8 +27,10 @@ def task_thrift2conll():
                 'basename': 'thrift2conll',
                 'name': base_name,
                 'file_dep': [WIKI_TYPES],
-                'actions': ['python thrift2conll.py --redis --input %s --output %s --exclude %s'
-                            % (f, out_file, TYPE_EXCLUDE)],
+                #'actions': ['python thrift2conll.py --redis --input %s --output %s --exclude %s'
+                #            % (f, out_file, TYPE_EXCLUDE)],
+                'actions': ['python thrift2conll.py --redis --input %s --output %s'
+                            % (f, out_file)],
                 'targets': [out_file],
                 'title': show_cmd
             }
