@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument('--glob')
     parser.add_argument('--path')
     parser.add_argument('--output', default="lemma_token_freq.txt")
-    parser.add_argument('--max', type=int, default=1000)
+    parser.add_argument('--max', type=int, default=sys.maxint)
     parser.add_argument('--n', default=12)
     parser.add_argument('--oov')
     return parser.parse_args()

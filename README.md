@@ -51,3 +51,7 @@ If not, see dodo.py for details on how to run each command.
 ```
 ./conll_stats.py --glob "*.conll" --output stats.txt
 ```
+
+## Misc notes ##
+
+https://code.google.com/p/wiki-link/source/browse/process/src/main/thrift/wiki-link-v0.1.thrift
