@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import redis
-#from urlparse import urlparse
 from urllib.parse import urlparse
 import codecs
 import sys
@@ -14,9 +13,7 @@ import argparse
 import gzip
 import zlib
 import html.parser
-import pywikibot
 import pprint
-from pywikibot.data import api
 from timeit import default_timer as timer
 
 try:
@@ -24,18 +21,22 @@ try:
 except ImportError:
         from io import StringIO
 
-import thrift
-from thrift import Thrift
-from thrift.transport import TSocket
-from thrift.transport import TTransport
-from thrift.protocol import TBinaryProtocol
+# import thrift
+# from thrift import Thrift
+# from thrift.transport import TSocket
+# from thrift.transport import TTransport
+# from thrift.protocol import TBinaryProtocol
+
+import thriftpy
+
+wikilink_thrift = thriftpy.load("wiki-link-v0.1.thrift", module_name="wikilink_thrift")
 
 import sys
-sys.path.append('./gen-py/edu/umass/cs/iesl/wikilink/expanded/data')
+# sys.path.append('./gen-py/edu/umass/cs/iesl/wikilink/expanded/data')
 
 # import thrift types
-from constants import *
-from ttypes import *
+# from constants import *
+# from ttypes import *
 
 def get_args():
         parser = argparse.ArgumentParser()
@@ -54,9 +55,6 @@ def get_args():
 
 def get_redis(host, port, dump_file):
         return redis.StrictRedis(host=host, port=port, db=0)
-
-def get_site(lang, site):
-        return pywikibot.Site(lang, site)
 
 def get_lemma(token):
 
@@ -120,32 +118,6 @@ def types_from_title_with_redis(r, title):
         #print('fetching types for: ' + title)
         key = title.replace("_", " ")
         return r.smembers(key)
-
-def types_from_title_with_pywikibot(site, title):
-        try:
-                page = pywikibot.Page(site, title)
-                item = pywikibot.ItemPage.fromPage(page)
-                dictionary = item.get()
-                sitelinks = item.sitelinks
-                aliases = item.aliases
-                if item.claims:
-                        if 'P31' in item.claims: # instance of
-                                ret = []
-                                for c in item.claims['P31']:
-                                        ret.append(c.getTarget())
-                                assert(len(ret) > 0)
-                                return ret
-        except pywikibot.exceptions.NoPage:
-                return None
-        except:
-                return None
-        return None
-
-def types_from_title(wiki, title):
-        if type(wiki) == pywikibot.site.APISite:
-                return types_from_title_with_pywikibot(wiki, title)
-        if type(wiki) == redis.client.StrictRedis:
-                return types_from_title_with_redis(wiki, title)
 
 def write_context(f, context):
         for tup in tokenize(context, False):
@@ -266,8 +238,6 @@ def main():
         else:
                 print('unsupported!')
                 sys.exit(1)
-                site = get_site(args.lang, args.site)
-                read_mentions(args.input, args.output, site, args.lang, args.verbose, include_set, exclude_set)
 
 if __name__ == "__main__":
         main()
