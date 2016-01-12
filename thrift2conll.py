@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import redis
-from urlparse import urlparse
+#from urlparse import urlparse
+from urllib.parse import urlparse
 import codecs
 import sys
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
@@ -12,14 +13,14 @@ import os
 import argparse
 import gzip
 import zlib
-import HTMLParser
+import html.parser
 import pywikibot
 import pprint
 from pywikibot.data import api
 from timeit import default_timer as timer
 
 try:
-        from StringIO import StringIO
+        from io import StringIO
 except ImportError:
         from io import StringIO
 
@@ -148,12 +149,12 @@ def types_from_title(wiki, title):
 
 def write_context(f, context):
         for tup in tokenize(context, False):
-                f.write(tup[0] + u' ?\n')
+                f.write(tup[0] + ' ?\n')
 
 def to_utf8(s):
-        ret = ftfy.fix_text(unicode(s,'utf8'))
-        ret = ret.replace(u' ', u' ')
-        ret = ret.replace(u'\n',u' ')
+        ret = ftfy.fix_text(str(s,'utf8'))
+        ret = ret.replace(' ', ' ')
+        ret = ret.replace('\n',' ')
         return ret
 
 def read_mentions(inpath, outpath, wiki, lang, verbose, include_set, exclude_set):
@@ -172,8 +173,8 @@ def read_mentions(inpath, outpath, wiki, lang, verbose, include_set, exclude_set
 
                 curr = timer()
                 if curr - start > 5:
-                        print(str(nitems)+' mentions ('+str(nitems_with_context)
-                              +' w context, '+str(nitems_with_type)+' w type)')
+                        print((str(nitems)+' mentions ('+str(nitems_with_context)
+                              +' w context, '+str(nitems_with_type)+' w type)'))
                         start = timer()
 
                 try:
@@ -231,12 +232,12 @@ def read_mentions(inpath, outpath, wiki, lang, verbose, include_set, exclude_set
                                 write_context(ouf, left_context)
 
                                 type_str = t.title()
-                                bio_type = u"B-"+type_str
+                                bio_type = "B-"+type_str
                                 for token in anchor_tokens:
                                         #s = token
                                         #uni = unicode(s, 'utf-8')
-                                        ouf.write(token + u' ' + bio_type + u'\n')
-                                        bio_type = u"I-"+type_str
+                                        ouf.write(token + ' ' + bio_type + '\n')
+                                        bio_type = "I-"+type_str
 
                                 # Write right context
                                 write_context(ouf, right_context)
