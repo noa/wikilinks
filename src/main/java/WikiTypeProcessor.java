@@ -69,12 +69,15 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
         String redis_dump_file = args[4];
         System.out.println("REDIS HOST " + redis_host + " DUMP " + redis_dump_file);
         ExampleHelpers.configureLogging();
+        System.out.println("Initializing WikiTypeProcessing...");
         WikiTypeProcessor processor = new WikiTypeProcessor(wiki,
                                                             redis_host,
                                                             redis_port,
                                                             redis_timeout,
                                                             redis_dump_file);
+        System.out.println("Processing entities...");
         ExampleHelpers.processEntitiesFromWikidataDump(processor);
+        System.out.println("Writing final results...");
         processor.writeFinalResults();
     }
 
