@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import redis
-from urllib.parse import urlparse
+from urlparse import urlparse
+#from urllib.parse import urlparse
 import codecs
 import sys
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
@@ -12,7 +13,8 @@ import os
 import argparse
 import gzip
 import zlib
-import html.parser
+#import html.parser
+import HTMLParser
 import pprint
 from timeit import default_timer as timer
 
@@ -21,22 +23,22 @@ try:
 except ImportError:
         from io import StringIO
 
-# import thrift
-# from thrift import Thrift
-# from thrift.transport import TSocket
-# from thrift.transport import TTransport
-# from thrift.protocol import TBinaryProtocol
+import thrift
+from thrift import Thrift
+from thrift.transport import TSocket
+from thrift.transport import TTransport
+from thrift.protocol import TBinaryProtocol
 
-import thriftpy
+# import thriftpy
 
-wikilink_thrift = thriftpy.load("wiki-link-v0.1.thrift", module_name="wikilink_thrift")
+# wikilink_thrift = thriftpy.load("wiki-link-v0.1.thrift", module_name="wikilink_thrift")
 
 import sys
-# sys.path.append('./gen-py/edu/umass/cs/iesl/wikilink/expanded/data')
+sys.path.append('./gen-py/edu/umass/cs/iesl/wikilink/expanded/data')
 
-# import thrift types
-# from constants import *
-# from ttypes import *
+#import thrift types
+from constants import *
+from ttypes import *
 
 def get_args():
         parser = argparse.ArgumentParser()
