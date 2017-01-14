@@ -1,20 +1,20 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import redis
-from urlparse import urlparse
-#from urllib.parse import urlparse
+#from urlparse import urlparse # python2
+from urllib.parse import urlparse # python3
 import codecs
 import sys
-sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+#sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 import string
 import ftfy
 import os
 import argparse
 import gzip
 import zlib
-#import html.parser
-import HTMLParser
+import html.parser #python3
+#import HTMLParser #python2
 import pprint
 from timeit import default_timer as timer
 
@@ -34,11 +34,12 @@ from thrift.protocol import TBinaryProtocol
 # wikilink_thrift = thriftpy.load("wiki-link-v0.1.thrift", module_name="wikilink_thrift")
 
 import sys
-sys.path.append('./gen-py/edu/umass/cs/iesl/wikilink/expanded/data')
+#sys.path.append('./gen-py/edu/umass/cs/iesl/wikilink/expanded/data')
+sys.path.append('./gen-py')
 
 #import thrift types
-from constants import *
-from ttypes import *
+from wikilinks.constants import *
+from wikilinks.ttypes import *
 
 def get_args():
         parser = argparse.ArgumentParser()
@@ -126,7 +127,9 @@ def write_context(f, context):
                 f.write(tup[0] + ' ?\n')
 
 def to_utf8(s):
-        ret = ftfy.fix_text(str(s,'utf8'))
+        #ret = ftfy.fix_text(str(s,'utf8'))
+        #s = unicode(s, "utf-8")
+        ret = ftfy.fix_text(s)
         ret = ret.replace(' ', ' ')
         ret = ret.replace('\n',' ')
         return ret
@@ -147,8 +150,10 @@ def read_mentions(inpath, outpath, wiki, lang, verbose, include_set, exclude_set
 
                 curr = timer()
                 if curr - start > 5:
-                        print((str(nitems)+' mentions ('+str(nitems_with_context)
-                              +' w context, '+str(nitems_with_type)+' w type)'))
+                        #print((str(nitems)+' mentions ('+str(nitems_with_context)
+                        #      +' w context, '+str(nitems_with_type)+' w type)'))
+                        #line = "{} mentions ({} w context {} w type)".format(nitems, nitems_with_context, nitems_with_type)
+                        #sys.stdout.write(line)
                         start = timer()
 
                 try:
@@ -165,7 +170,8 @@ def read_mentions(inpath, outpath, wiki, lang, verbose, include_set, exclude_set
                         types = None
                         if not m.wiki_url == None:
                                 title = os.path.split(urlparse(m.wiki_url).path)[-1]
-                                types = types_from_title(wiki, title)
+                                #types = types_from_title(wiki, title)
+                                types = types_from_title_with_redis(wiki, title)
 
                                 left_context = to_utf8(m.context.left)
                                 right_context = to_utf8(m.context.right)

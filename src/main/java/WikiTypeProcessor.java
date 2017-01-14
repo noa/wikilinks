@@ -42,15 +42,18 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
                              String redis_dump_file) {
         this.wiki = wiki;
         this.pool = new JedisPool(new JedisPoolConfig(),
-                                        redis_host,
-                                        redis_port,
-                                        redis_timeout);
+                                  redis_host,
+                                  redis_port,
+                                  redis_timeout);
         String redis_dump_dir = System.getProperty("user.dir");
+        System.out.println("redis dump dir: " + redis_dump_dir);
+        System.out.println("redis dump file: " + redis_dump_file);
         try (Jedis jedis = pool.getResource()) {
             jedis.configSet("dir", redis_dump_dir);
             jedis.configSet("dbfilename", redis_dump_file);
             jedis.flushAll(); // flush previous redis contents
         }
+        System.out.println("finished redis configuration");
     }
 
     /**

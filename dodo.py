@@ -29,7 +29,7 @@ def task_thrift2conll():
                 'file_dep': [WIKI_TYPES],
                 #'actions': ['python thrift2conll.py --redis --input %s --output %s --exclude %s'
                 #            % (f, out_file, TYPE_EXCLUDE)],
-                'actions': ['python thrift2conll.py --redis --input %s --output %s'
+                'actions': ['python3 thrift2conll.py --redis --input %s --output %s'
                             % (f, out_file)],
                 'targets': [out_file],
                 'title': show_cmd

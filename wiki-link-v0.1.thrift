@@ -1,5 +1,6 @@
 namespace java edu.umass.cs.iesl.wikilink.expanded.data
-namespace py edu.umass.cs.iesl.wikilink.expanded.data
+//namespace py edu.umass.cs.iesl.wikilink.expanded.data
+namespace py wikilinks
 
 struct PageContentItem {
   // original download
