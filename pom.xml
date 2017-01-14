@@ -14,25 +14,25 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-  <repositories>
-      <repository>
-          <id>iesl.cs.umass.edu</id>
-          <name>IESL release repository</name>
-          <url>https://dev-iesl.cs.umass.edu/nexus/content/repositories/releases/</url>
-      </repository>
-      <repository>
-          <id>snapshot.iesl.cs.umass.edu</id>
-          <name>IESL snapshot repository</name>
-          <url>https://dev-iesl.cs.umass.edu/nexus/content/repositories/snapshots/</url>
-      </repository>
-  </repositories>
+  <!-- <repositories> -->
+  <!--     <repository> -->
+  <!--         <id>iesl.cs.umass.edu</id> -->
+  <!--         <name>IESL release repository</name> -->
+  <!--         <url>https://dev-iesl.cs.umass.edu/nexus/content/repositories/releases/</url> -->
+  <!--     </repository> -->
+  <!--     <repository> -->
+  <!--         <id>snapshot.iesl.cs.umass.edu</id> -->
+  <!--         <name>IESL snapshot repository</name> -->
+  <!--         <url>https://dev-iesl.cs.umass.edu/nexus/content/repositories/snapshots/</url> -->
+  <!--     </repository> -->
+  <!-- </repositories> -->
 
   <dependencies>
-      <dependency>
-          <groupId>edu.umass.cs.iesl.wikilink</groupId>
-          <artifactId>wikilink</artifactId>
-          <version>0.1-SNAPSHOT</version>
-      </dependency>
+      <!-- <dependency> -->
+      <!--     <groupId>edu.umass.cs.iesl.wikilink</groupId> -->
+      <!--     <artifactId>wikilink</artifactId> -->
+      <!--     <version>0.1-SNAPSHOT</version> -->
+      <!-- </dependency> -->
       <dependency>
           <groupId>junit</groupId>
           <artifactId>junit</artifactId>
@@ -77,12 +77,12 @@
       <dependency>
           <groupId>org.wikidata.wdtk</groupId>
           <artifactId>wdtk-util</artifactId>
-          <version>0.4.0</version>
+          <version>0.7.0</version>
       </dependency>
       <dependency>
           <groupId>org.wikidata.wdtk</groupId>
           <artifactId>wdtk-datamodel</artifactId>
-          <version>0.4.0</version>
+          <version>0.7.0</version>
       </dependency>
       <!-- <dependency> -->
       <!--     <groupId>org.wikidata.wdtk</groupId> -->
@@ -92,7 +92,7 @@
       <dependency>
           <groupId>org.wikidata.wdtk</groupId>
           <artifactId>wdtk-dumpfiles</artifactId>
-          <version>0.4.0</version>
+          <version>0.7.0</version>
       </dependency>
       <dependency>
           <groupId>redis.clients</groupId>

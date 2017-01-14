@@ -31,6 +31,7 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.dumpfiles.DumpContentType;
 import org.wikidata.wdtk.dumpfiles.DumpProcessingController;
@@ -52,7 +53,7 @@ public class ExampleHelpers {
 	 * If set to true, all example programs will run in offline mode. Only data
 	 * dumps that have been downloaded in previous runs will be used.
 	 */
-	public static final boolean OFFLINE_MODE = false;
+	public static final boolean OFFLINE_MODE = true;
 
 	/**
 	 * Enum to say which dumps should be downloaded and processed. Used as
@@ -65,7 +66,7 @@ public class ExampleHelpers {
 	/**
 	 * Defines which dumps will be downloaded and processed in all examples.
 	 */
-	public static final DumpProcessingMode DUMP_FILE_MODE = DumpProcessingMode.JSON;
+    public static final DumpProcessingMode DUMP_FILE_MODE = DumpProcessingMode.JSON;
 
 	/**
 	 * The directory where to place files created by the example applications.

@@ -20,16 +20,12 @@ import org.wikidata.wdtk.datamodel.interfaces.SiteLink;
 import org.wikidata.wdtk.datamodel.interfaces.EntityIdValue;
 import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
 
+//import org.wikidata.wdtk.examples.ExampleHelpers;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-// import org.wikidata.wdtk.examples.ExampleHelpers;
-
-/**
- * The HelloWorldApp class implements an application that
- * simply displays "Hello World!" to the standard output.
- */
 class WikiTypeProcessor implements EntityDocumentProcessor {
     String wiki;
     //Jedis jedis;
@@ -45,9 +41,13 @@ class WikiTypeProcessor implements EntityDocumentProcessor {
                                   redis_host,
                                   redis_port,
                                   redis_timeout);
+
+        // user.dir is the user working directory
         String redis_dump_dir = System.getProperty("user.dir");
+
         System.out.println("redis dump dir: " + redis_dump_dir);
         System.out.println("redis dump file: " + redis_dump_file);
+
         try (Jedis jedis = pool.getResource()) {
             jedis.configSet("dir", redis_dump_dir);
             jedis.configSet("dbfilename", redis_dump_file);
