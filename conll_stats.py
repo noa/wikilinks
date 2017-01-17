@@ -72,6 +72,7 @@ def get_type_label(wiki, t):
             #print('The label in English is: ' + item.labels['en'])
             return item.labels['en']
         else:
+            print('no label for {}'.format(t))
             return None
     except:
         return None
@@ -98,13 +99,13 @@ def main():
     site = None
     repo = None
     if args.titles:
-        print('getting wiki...')
+        print('getting wiki {} in {}'.format(args.site, args.lang))
         site = get_wiki(args.lang, args.site)
 
         print('getting data repository...')
         repo = site.data_repository()
 
-    print('writing results...')
+    print('writing results to {}'.format(args.output))
     ouf = codecs.open(args.output, 'w', 'utf-8')
     for t in sorted_s:
         l = None
@@ -115,11 +116,8 @@ def main():
         #print(t[0], l, t[1])
         #print(t[0] + " " + l + " " + str(t[1]))
         #ol = "%10s %50s %10u" % (t[0],l,t[1])
-        ol = t[0] + u" " + str(t[1])
-        if args.output:
-            ouf.write(ol + u"\n")
-        else:
-            print(ol)
+        #ol = t[0] + " " + t[1]
+        ouf.write("{} {}\n".format(str(t[0]), str(t[1])))
 
     return 0
 

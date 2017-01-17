@@ -49,7 +49,7 @@ def task_thrift2conll():
 def task_conll_stats():
     STATS_OUT="statistics.txt"
     return {
-        'actions': ['python3 conll_stats.py --glob "*.conll" --output %s' % (STATS_OUT)],
+        'actions': ['python3 conll_stats.py --glob "*.conll" --output %s --titles' % (STATS_OUT)],
         'targets': [STATS_OUT],
         'verbosity': 2
     }
