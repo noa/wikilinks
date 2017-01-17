@@ -203,7 +203,7 @@ def read_mentions(inpath, outpath, wiki, lang, verbose, include_set, exclude_set
                 # Write left context
                 write_context(ouf, left_context)
 
-                type_str = t.title()
+                type_str = str(t.title())
 
                 if verbose:
                     logging.info("INSTANCE:")
@@ -230,7 +230,7 @@ def main():
     args = get_args()
 
     # set up logging
-    logging.basicConfig(filename=args.logfile, filemode='w')
+    logging.basicConfig(filename=args.input+'.log', filemode='w')
 
     include_set = set()
     if args.include:

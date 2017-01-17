@@ -13,7 +13,7 @@ def task_download_wiki_dump():
         'actions': ['mvn exec:java -Dexec.mainClass="jhu.wikilinks.DownloadDump"'],
         'targets': ['dumpfiles'],
         'uptodate': [False],
-        'verbosity': 2
+        'verbosity': 1
     }
 
 # this task retrieves a bunch of wikipedia entity types
@@ -24,7 +24,8 @@ def task_wiki_types():
 #        'actions': ['mvn exec:java'],
         'actions': ['mvn exec:java -Dexec.mainClass="jhu.wikilinks.WikiTypeProcessor" -Dexec.args="enwiki localhost 6379 20000 {}"'.format(WIKI_TYPES)],
         'targets': [WIKI_TYPES],
-        'uptodate': [True]
+        'uptodate': [True],
+        'verbosity': 2
     }
 
 def task_thrift2conll():
@@ -48,6 +49,7 @@ def task_thrift2conll():
 def task_conll_stats():
     STATS_OUT="statistics.txt"
     return {
-        'actions': ['./conll_stats.py --glob "*.conll" --output %s' % (STATS_OUT)],
-        'targets': [STATS_OUT]
+        'actions': ['python3 conll_stats.py --glob "*.conll" --output %s' % (STATS_OUT)],
+        'targets': [STATS_OUT],
+        'verbosity': 2
     }
