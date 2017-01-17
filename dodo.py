@@ -1,5 +1,6 @@
 import os
 
+WIKIDATA_DUMP=''
 WIKI_TYPES='wiki_types.rdb'
 #TYPE_EXCLUDE='exclude_list.txt'
 #TYPE_EXCLUDE='exclude_less_than_10000.txt'
@@ -7,12 +8,21 @@ WIKI_TYPES='wiki_types.rdb'
 def show_cmd(task):
     return "executing... %s" % task.name
 
+def task_download_wiki_dump():
+    return {
+        'actions': ['mvn exec:java -Dexec.mainClass="jhu.wikilinks.DownloadDump"'],
+        'targets': ['dumpfiles'],
+        'uptodate': [False],
+        'verbosity': 2
+    }
+
 # this task retrieves a bunch of wikipedia entity types
 # from a wikidata dump and stores them in redis
 def task_wiki_types():
     return {
 #        'name': "wiki2redis",
-        'actions': ['mvn exec:java'],
+#        'actions': ['mvn exec:java'],
+        'actions': ['mvn exec:java -Dexec.mainClass="jhu.wikilinks.WikiTypeProcessor" -Dexec.args="enwiki localhost 6379 20000 {}"'.format(WIKI_TYPES)],
         'targets': [WIKI_TYPES],
         'uptodate': [True]
     }

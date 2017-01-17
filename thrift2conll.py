@@ -250,6 +250,10 @@ def main():
 
     if args.redis:
         r = get_redis(args.redis_host, args.redis_port, args.redis_dump_file)
+        sz = r.dbsize()
+        logging.info("redis DB num keys = {}".format(sz))
+        if sz < 0:
+            raise ValueError('empty redis DB')
         read_mentions(args.input, args.output, r, args.lang, args.verbose, include_set, exclude_set)
     else:
         raise ValueError('unsupported! must use redis')
